@@ -2,7 +2,17 @@ export interface ITrait {
   name: string;
   description: string;
   level: number;
-  items: ITraitItem[];
+  items: ICat721TraitItems[];
+}
+
+export interface ICat721TraitItems extends Omit<ITraitItem, "inscriptionId"> {
+  collectionId: string;
+  localId: string;
+  maxCount?: number;
+}
+
+export interface ICat721Trait extends Omit<ITrait, "items"> {
+  items: ICat721TraitItems[];
 }
 
 export interface ITraitItem {
@@ -24,12 +34,12 @@ export interface IRecursiveInscriptionConfig {
 
 export interface IInscriptionMap {
   totalItems: number;
-  inscriptions: IInscriptionMapTraitItems[][];
+  inscriptions: ICat721TraitItems[][];
 }
 
 export interface IInscriptionMapTraitItems extends ITraitItem {
   maxCount: number;
 }
 export interface IInscriptionMapPayload extends Omit<ITrait, "items"> {
-  items: IInscriptionMapTraitItems[];
+  items: ICat721TraitItems[];
 }

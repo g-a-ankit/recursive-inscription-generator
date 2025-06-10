@@ -1,7 +1,7 @@
 import {
   IInscriptionMap,
   IInscriptionMapPayload,
-  IInscriptionMapTraitItems,
+  ICat721TraitItems,
   IRecursiveInscriptionConfig,
 } from "../common/interfaces";
 import { getCartesianProduct } from "../common/utility";
@@ -129,14 +129,14 @@ export const generateInscriptionMapByRandom = async (
     const totalItems = config.totalInscriptionsToGenerate;
     let traitCountMap: Record<string, number> = {};
     let totalInscriptionsGenerated = 0;
-    const uniqueInscriptions = new Map<string, IInscriptionMapTraitItems[]>([]);
+    const uniqueInscriptions = new Map<string, ICat721TraitItems[]>([]);
     let totalUniqueInscriptions = 0;
     let totalSwaps = 0;
     let totalFailedSwaps = 0;
 
     const updateUniqueInscriptions = (
       inscriptionString: string,
-      inscription: IInscriptionMapTraitItems[]
+      inscription: ICat721TraitItems[]
     ) => {
       const _temp = _.cloneDeep(traitCountMap);
       let abort = false;
@@ -146,7 +146,7 @@ export const generateInscriptionMapByRandom = async (
           _temp[i.name] = 0;
         }
 
-        if (_temp[i.name] < i.maxCount) {
+        if (_temp[i.name] < (i?.maxCount || 0)) {
           _temp[i.name]++;
         } else {
           abort = true;
@@ -160,7 +160,7 @@ export const generateInscriptionMapByRandom = async (
     };
 
     while (uniqueInscriptions.size < totalItems) {
-      const inscription: IInscriptionMapTraitItems[] = [];
+      const inscription: ICat721TraitItems[] = [];
       // - iterate over all traits
       // - for each trait, select a random item that hasn't been selected more than maxCount times
       // - add the item to the inscription
@@ -169,7 +169,7 @@ export const generateInscriptionMapByRandom = async (
           .filter((item) => {
             return (
               !traitCountMap[item.name] ||
-              traitCountMap[item.name] < item.maxCount
+              traitCountMap[item.name] < (item.maxCount || 0)
             );
           })
           .valueOf();
@@ -185,7 +185,7 @@ export const generateInscriptionMapByRandom = async (
           traitCountMap[chosenItem.name] = 0;
         }
 
-        if (traitCountMap[chosenItem.name] < chosenItem.maxCount) {
+        if (traitCountMap[chosenItem.name] < (chosenItem.maxCount || 0)) {
           // traitCountMap[chosenItem.name]++;
           inscription.push(chosenItem);
         }
@@ -310,7 +310,10 @@ export const generateHTMLTags = async (
       const tags: string[] = [];
       for (const item of inscription) {
         const tag = imgTag
-          .replace("{IMG_PATH}", `/content/${item.inscriptionId}`)
+          .replace(
+            "{IMG_PATH}",
+            `${item.collectionId}/localId/${item.localId}/content`
+          )
           .replace("{ALT}", item.name);
         tags.push(tag);
       }
@@ -378,11 +381,11 @@ export const generateInscriptionMap = async (
 };
 
 export const swapInscriptionWithoutDuplicate = (
-  uniqueItems: Map<string, IInscriptionMapTraitItems[]>,
-  inscriptions: IInscriptionMapTraitItems[]
+  uniqueItems: Map<string, ICat721TraitItems[]>,
+  inscriptions: ICat721TraitItems[]
 ): {
   state: boolean;
-  ins: { inscriptionString: string; items: IInscriptionMapTraitItems[] }[];
+  ins: { inscriptionString: string; items: ICat721TraitItems[] }[];
 } => {
   try {
     // - start from 0th index and iterate till last index to check if swapping is possible and it will create unique inscription
@@ -402,7 +405,7 @@ export const swapInscriptionWithoutDuplicate = (
 
     const newInscriptions: {
       inscriptionString: string;
-      items: IInscriptionMapTraitItems[];
+      items: ICat721TraitItems[];
     }[] = [];
 
     while (indexToSwap < maxIndex) {
@@ -454,7 +457,7 @@ export const swapInscriptionWithoutDuplicate = (
 
 export const saveTraits = async (
   config: IRecursiveInscriptionConfig,
-  uniqueInscriptions: IInscriptionMapTraitItems[][]
+  uniqueInscriptions: ICat721TraitItems[][]
 ) => {
   try {
     const traitString = uniqueInscriptions.map((ins, index) => {
